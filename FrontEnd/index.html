@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>知识图谱查询</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/window.css"">
+
+    
+
+</head>
+<body>
+    
+    <div id="shadow">
+
+    </div>
+
+    <div id="searchOneWindow">
+
+        <div class="searchTitle">单节点查询</div>
+        <div class="typeWrapper">
+            <input type="radio" v-model="type" value='1'　id='s11'><label for="s11">资源</label>
+            <input type="radio" v-model="type" value='2' id='s12'><label for="s12">书籍</label>
+            <input type="radio" v-model="type" value='3' id='s13'><label for="s13">电影</label>
+            <input type="radio" v-model="type" value='4' id='s14'><label for="s14">音乐</label>
+        </div>
+
+        <input type="text" v-model='curInput' class="searchInput" v-on:input='handleInputChange'>
+
+        <div class="searchRes" v-if='resShow'>
+            <div v-for="(res,index) in searchRes" v-bind:id = 'idFront + index' v-on:click='handleSelectRes' class="resLi">{{res.name}}</div>
+        </div>
+
+        <div class="option">步长：
+            <select v-model=step>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+            </select>
+        </div>
+        <div class="option">
+            最大返回个数：
+            <select v-model=limit>
+                <option>10</option>
+                <option>20</option>
+                <option>30</option>
+                <option>40</option>
+                <option>50</option>
+                <option>60</option>
+            </select>
+        </div>
+
+        <div class="submitButton" v-on:click="sendSearchOneReq">查询</div>
+
+    </div>
+
+    <div id="searchTwoWindow">
+
+
+
+    </div>
+
+
+
+
+
+    <div class="title">知识图谱 未联调版</div>
+
+    <svg id="svg" width="800" height="560">
+
+
+
+
+
+
+    </svg>
+
+
+    <div id='indicator'>
+
+    </div>
+
+    <div id="info">
+        <h4></h4>
+    </div>
+
+    <div class="buttonWindow">
+
+        <div id="showSearchOne" class="searchButton">
+            <p>单节点关系查询</p>
+        </div>
+
+        <div id="showSearchTwo" class="searchButton">
+            <p>双节点关系查询</p>
+        </div>
+
+    </div>
+
+
+
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="lib/vue.js"></script>
+    <script src="js/main.js"></script>
+
+    </body>
+
+</html>
