@@ -23,6 +23,8 @@ var graph = {
     links: []
 }
 
+var relatedId = -1;
+
 
 /***************************弹出框事件******************************/
 
@@ -164,44 +166,44 @@ var searchOneVue = new Vue({
 });
 
 var searchTwoVue = new Vue({
-    el:'#searchTwoWindow',
+    el: '#searchTwoWindow',
 
-    data:{
-        type1:0,
-        type2:0,
+    data: {
+        type1: 0,
+        type2: 0,
 
-        curInput1:'hello',
-        curInput2:'hi',
+        curInput1: 'hello',
+        curInput2: 'hi',
 
-        idFront1:'ssrOne',
-        idFront2:'ssrTwo',
+        idFront1: 'ssrOne',
+        idFront2: 'ssrTwo',
 
-        resOneShow:false,
-        resTwoShow:false,
+        resOneShow: false,
+        resTwoShow: false,
 
-        searchResOne:[
-            
+        searchResOne: [
+
         ],
-        searchResTwo:[
-          
+        searchResTwo: [
+
         ],
 
-        sendInterv1:'',
-        sendInterv2:'',
+        sendInterv1: '',
+        sendInterv2: '',
 
-        finalTypeOne:0,
-        finalTypeTwo:0,
+        finalTypeOne: 0,
+        finalTypeTwo: 0,
 
-        id1:-1,
-        id2:-1,
+        id1: -1,
+        id2: -1,
 
-        step:2,
-        limit:10
+        step: 2,
+        limit: 10
     },
 
-    methods:{
+    methods: {
 
-        startFocusOne:function(){
+        startFocusOne: function () {
             var p_this = this;
             this.sendInterv1 = setInterval(function () {
 
@@ -222,10 +224,10 @@ var searchTwoVue = new Vue({
             }, 4000);
         },
 
-        stopFocusOne:function(){
+        stopFocusOne: function () {
             clearInterval(this.sendInterv1);
         },
-        startFocusTwo:function(){
+        startFocusTwo: function () {
             var p_this = this;
             this.sendInterv2 = setInterval(function () {
 
@@ -246,10 +248,10 @@ var searchTwoVue = new Vue({
             }, 4000);
 
         },
-        stopFocusTwo:function(){
+        stopFocusTwo: function () {
             clearInterval(this.sendInterv2);
         },
-        handleSelectResOne:function(){
+        handleSelectResOne: function () {
             console.log(event.target.id)
             var index = parseInt(event.target.id.slice(6));
 
@@ -259,7 +261,7 @@ var searchTwoVue = new Vue({
 
             this.resOneShow = false;
         },
-        handleSelectResTwo:function(){
+        handleSelectResTwo: function () {
             var index = parseInt(event.target.id.slice(6));
 
             this.curInput2 = this.searchResTwo[index]['name'];
@@ -270,7 +272,7 @@ var searchTwoVue = new Vue({
 
         },
 
-        sendMinPath:function(){
+        sendMinPath: function () {
             if (this.id1 == -1 || this.id2 == -1) {
                 alert("请先选择一个查询结果");
                 return;
@@ -304,10 +306,10 @@ var searchTwoVue = new Vue({
                     }
                     initSvg();
                     closeAll();
-                })         
+                })
         },
 
-        sendTwoNodes:function(){
+        sendTwoNodes: function () {
 
             if (this.id1 == -1 || this.id2 == -1) {
                 alert("请先选择一个查询结果");
@@ -344,10 +346,10 @@ var searchTwoVue = new Vue({
                     }
                     initSvg();
                     closeAll();
-                }) 
+                })
         },
 
-        sendAllPath:function(){
+        sendAllPath: function () {
             if (this.id1 == -1 || this.id2 == -1) {
                 alert("请先选择一个查询结果");
                 return;
@@ -476,7 +478,12 @@ function initSvg() {
         ).attr("stroke-width", function (d) {
             //return Math.sqrt(d.value);
             return 1; //所有线宽度均为1
-        }).style("stroke",function(d){
+        }).attr(
+            'id',
+            function(d){
+                return d.id;
+            }
+        ).style("stroke", function (d) {
             return 'grey';
         });
 
@@ -487,7 +494,7 @@ function initSvg() {
                 return d.id
             }
         ).attr("r", function (d) {
-            if(d.id == searchOneVue.id || d.id == searchTwoVue.id1 || d.id == searchTwoVue.id2)return 20;
+            if (d.id == searchOneVue.id || d.id == searchTwoVue.id1 || d.id == searchTwoVue.id2 || d.id == relatedId) return 20;
             else return 10;
         }).attr("fill", function (d) {
             return type2color[d.label];
@@ -541,7 +548,7 @@ function initSvg() {
             return d.label;
         });
 
-    simulation.on("tick",ticked);
+    simulation.on("tick", ticked);
 
     function ticked() {
         link
@@ -644,6 +651,96 @@ function handleMouseEnter(event) {
     }
 }
 
+function handleMouseClick(event) {
+
+    var id = $(this).attr('id');
+
+    relatedId = id;
+
+    var params = new URLSearchParams();
+
+    params.append('type', 0);
+    params.append('step', 2);
+    params.append('id', id);
+    params.append('limit', 10);
+
+    axios.post(requestURL + '/searchANode', params)
+        .then(res => {
+            
+
+            p_nodes = res.data.nodes;
+            p_relations = res.data.relations;
+
+            new_nodes = [];
+            new_links = [];
+
+            for(let i =0;i < graph.nodes.length;i++){
+                new_nodes.push({
+                    'name': graph.nodes[i].name,
+                    'id': graph.nodes[i].id,
+                    'label': graph.nodes[i].label,
+                    'uri': graph.nodes[i].uri
+                }
+                );
+            }
+
+            
+
+            for(let i =0;i < graph.links.length;i++){
+                console.log(graph.links[i].source);
+                new_links.push( {
+                    'id': graph.links[i].id,
+                    'source': graph.links[i].source.id,
+                    'label': graph.links[i].label,
+                    'target': graph.links[i].target.id
+                }
+                );
+            }
+
+            for (let i = 0; i < p_nodes.length; i++) {
+
+                var newNode = p_nodes[i]['properties'];
+                /*判断存在*/
+                var judge = false;
+                for (let j = 0; j < new_nodes.length; j++) {
+                    
+                    if(newNode.id == new_nodes[j].id){
+                        judge = true;
+                        break;
+                    }
+                }
+
+                if(!judge)new_nodes.push(newNode);
+            }
+
+            graph.nodes = new_nodes;
+
+            for (let i = 0; i < p_relations.length; i++) {
+                var newLink = p_relations[i]['properties'];
+
+                /*判断存在*/
+                var judge = false;
+                for (let j = 0; j < new_links.length; j++) {
+                    
+                    if(newLink.id == new_links[j].id){
+                        judge = true;
+                        break;
+                    }
+                }
+                if(!judge)new_links.push(newLink);
+            }
+            graph.links = new_links;
+
+            console.log(new_links);
+            console.log(new_nodes);
+            
+            initSvg();
+            closeAll();
+
+        });
+
+}
+
 
 
 
@@ -667,5 +764,6 @@ window.onload = function () {
 
 
     $('#svg').on('mouseenter', '.nodes circle', handleMouseEnter);
+    $('#svg').on('click', '.nodes circle', handleMouseClick);
 
 }
