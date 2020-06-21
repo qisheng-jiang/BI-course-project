@@ -15,13 +15,12 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static com.tongji.bi.util.ConstantDefinition.path2SystemJson;
 
@@ -228,4 +227,129 @@ public class IndexController {
     public HashMap<String, ArrayList<NodeEntity>> query(@RequestParam("query") String query){
         return new GraphService().query(query);
     }
+
+
+    /**
+     * 获得某类型电影预测某年数量
+     */
+    @RequestMapping(value = "predictMovieGenreAmount", method = RequestMethod.POST)
+    @ResponseBody
+    @CrossOrigin(maxAge = 3600, origins = "*")
+    public String predictMovieGenreAmount(@RequestParam("year") String year,
+                                          @RequestParam("genre") String genre) throws IOException, InterruptedException {
+        String exe = "python";
+        String command = "python/genrePredict.py";
+
+        String[] cmdArr = new String[] {exe, command, genre, year};
+        Process process = Runtime.getRuntime().exec(cmdArr);
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+//        while ((line = in.readLine()) != null) {
+//            System.out.println(line);
+//        }
+        line = in.readLine();
+        in.close();
+        process.waitFor();
+        HashMap<String, String> hashMap = new HashMap<>();
+        hashMap.put("amount", line);
+        System.out.println(hashMap);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.putAll(hashMap);
+        System.out.println(jsonObject);
+
+        return jsonObject.toJSONString();
+    }
+
+    /**
+     * 为某用户uid推荐n个电影
+     * @return
+     */
+    @RequestMapping(value = "get_similar_users_recommendations", method = RequestMethod.POST)
+    @ResponseBody
+    @CrossOrigin(maxAge = 3600, origins = "*")
+    public String get_similar_users_recommendations(@RequestParam("uid") String uid,
+                                                    @RequestParam("n") String n) throws IOException, InterruptedException {
+        String exe = "python";
+        String command = "python/movie_recommend.py";
+
+        String[] cmdArr = new String[] {exe, command, uid, n};
+        Process process = Runtime.getRuntime().exec(cmdArr);
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+        List<String> resultList = new ArrayList();
+
+        while ((line = in.readLine()) != null) {
+            System.out.println(line);
+            if (line.contains("Estimating biases")) continue;
+            if (line.contains("Computing the msd")) continue;
+            resultList.add(line);
+        }
+        in.close();
+        process.waitFor();
+
+        HashMap<String, List<String>> hashMap = new HashMap<>();
+        hashMap.put("list", resultList);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.putAll(hashMap);
+        return jsonObject.toJSONString();
+    }
+
+    /**
+     * 某电影iid的相似n个电影
+     * @return
+     */
+    @RequestMapping(value = "get_similar_items", method = RequestMethod.POST)
+    @ResponseBody
+    @CrossOrigin(maxAge = 3600, origins = "*")
+    public String get_similar_items(@RequestParam("iid") String iid,
+                                    @RequestParam("n") String n) throws IOException, InterruptedException {
+        String exe = "python";
+        String command = "python/movie_recommend2.py";
+
+        String[] cmdArr = new String[] {exe, command, iid, n};
+        Process process = Runtime.getRuntime().exec(cmdArr);
+        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line = null;
+        List<String> resultList = new ArrayList();
+
+        while ((line = in.readLine()) != null) {
+            System.out.println(line);
+            if (line.contains("Estimating biases")) continue;
+            if (line.contains("Computing the msd")) continue;
+            if (line.contains("Done computing similarity")) continue;
+            resultList.add(line);
+        }
+        in.close();
+        process.waitFor();
+
+        HashMap<String, List<String>> hashMap = new HashMap<>();
+        hashMap.put("list", resultList);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.putAll(hashMap);
+        return jsonObject.toJSONString();
+    }
+
+//    /**
+//     * 两个电影的相似度（图数据）
+//     */
+//    @RequestMapping(value = "get_similarity", method = RequestMethod.POST)
+//    @ResponseBody
+//    @CrossOrigin(maxAge = 3600, origins = "*")
+//    public String get_similarity(@RequestParam("name1") String name1,
+//                                  @RequestParam("name2") String name2) throws IOException, InterruptedException {
+//        String exe = "python";
+//        String command = "python/movie_sim.py";
+//
+//        String[] cmdArr = new String[] {exe, command, name1, name2};
+//        Process process = Runtime.getRuntime().exec(cmdArr);
+//        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//        String line = null;
+//        while ((line = in.readLine()) != null) {
+//            System.out.println(line);
+//        }
+//        in.close();
+//        process.waitFor();
+//        return line;
+//    }
+
 }
