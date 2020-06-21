@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -252,10 +251,10 @@ public class IndexController {
         process.waitFor();
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("amount", line);
-        System.out.println(hashMap);
+//        System.out.println(hashMap);
         JSONObject jsonObject = new JSONObject();
         jsonObject.putAll(hashMap);
-        System.out.println(jsonObject);
+//        System.out.println(jsonObject);
 
         return jsonObject.toJSONString();
     }
@@ -279,7 +278,7 @@ public class IndexController {
         List<String> resultList = new ArrayList();
 
         while ((line = in.readLine()) != null) {
-            System.out.println(line);
+//            System.out.println(line);
             if (line.contains("Estimating biases")) continue;
             if (line.contains("Computing the msd")) continue;
             resultList.add(line);
@@ -313,7 +312,7 @@ public class IndexController {
         List<String> resultList = new ArrayList();
 
         while ((line = in.readLine()) != null) {
-            System.out.println(line);
+//            System.out.println(line);
             if (line.contains("Estimating biases")) continue;
             if (line.contains("Computing the msd")) continue;
             if (line.contains("Done computing similarity")) continue;
