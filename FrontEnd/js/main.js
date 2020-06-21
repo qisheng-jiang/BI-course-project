@@ -443,9 +443,14 @@ function showSearchTwo() {
     showWindow(document.getElementById('searchTwoWindow'));
 }
 
+function showGraphWindow(){
+    showWindow(document.getElementById('graphWindow'));
+}
+
 function closeAll() {
     closeWindow(document.getElementById("searchOneWindow"));
     closeWindow(document.getElementById("searchTwoWindow"));
+    closeWindow(document.getElementById("graphWindow"));
 }
 
 /***************************创建力图******************************/
@@ -758,6 +763,7 @@ window.onload = function () {
 
     document.getElementById('showSearchOne').addEventListener('click', showSearchOne);
     document.getElementById('showSearchTwo').addEventListener('click', showSearchTwo);
+    document.getElementById('showgraph').addEventListener('click', showGraphWindow);
     document.getElementById('shadow').addEventListener('click', closeAll);
 
 

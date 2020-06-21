@@ -146,7 +146,6 @@
     width: 500px;
     height: 300px;
     padding:20px 20px;
-
     position: fixed; 
     left: 0px;
     right: 0px;
@@ -205,4 +204,32 @@
 .ssrSubmit{
     position: relative;
     left:0%;
+}
+
+/***************************开局一张图******************************/
+
+#graphWindow{
+
+    width: 500px;
+    height: 300px;
+    padding:20px 20px;
+    position: fixed; 
+    left: 0px;
+    right: 0px;
+    top:0px;
+    bottom:0px;
+    margin: auto;
+    background-color: white;
+    border-radius: 10px;
+    z-index:100;
+    display: none;
+    transition: 0.2s;
+
+}
+
+#graphWindow img{
+
+    width: 500px;
+    height: 300px;
+
 }
