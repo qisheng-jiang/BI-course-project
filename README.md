@@ -8,6 +8,18 @@
 
 在本项目中，利用来源于维基百科（Wikipedia）的结构化数据抽取（DBPedia），实现了一个端到端的智能分析系统，实现的功能包括数据采集、数据转换、数据存储、数据分析和可视化等。
 
+### 项目架构
+
+- 前端：vue+D3
+- 后端：springboot+python
+- 数据库：Neo4j、MongoDB、MySQL
+
+![framework](img/framework.png)
+
+#### 后端类图
+
+![class](img/class.png)
+
 ## ETL
 
 ### neo4j数据导入
