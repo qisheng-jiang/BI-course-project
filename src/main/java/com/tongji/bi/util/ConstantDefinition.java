@@ -9,6 +9,8 @@ public class ConstantDefinition {
     public static final String username = "neo4j";
     public static final String password = "1234";
 
+    public static String path2SystemJson = "/home/upload/system/";
+
     static final String mongoDatabase = "neo4j";
     static final String mongoIp = "47.103.27.88";
     static final int mongoPort = 27017;

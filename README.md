@@ -8,6 +8,18 @@
 
 在本项目中，利用来源于维基百科（Wikipedia）的结构化数据抽取（DBPedia），实现了一个端到端的智能分析系统，实现的功能包括数据采集、数据转换、数据存储、数据分析和可视化等。
 
+### 项目架构
+
+- 前端：vue+D3
+- 后端：springboot+python
+- 数据库：Neo4j、MongoDB、MySQL
+
+![framework](img/framework.png)
+
+### 类图
+
+![class](img/class.png)
+
 ## ETL
 
 ### neo4j数据导入
@@ -138,7 +150,7 @@ mysql主要存储实体节点信息，用于实体名字的模糊查询，⽬的
 
 版本：8.0
 
-数据量：
+数据量：2,369,339
 
 存储结构：
 
@@ -166,6 +178,16 @@ CREATE FULLTEXT INDEX ft_name ON node (name)
 ```sql
 SELECT * FROM node WHERE MATCH (name) AGAINST ('David') LIMIT 50
 ```
+
+处理数据得到的本体层文件存入ontology表中，表的结构如下所示：
+
+| 字段   | 含义           |
+| ------ | -------------- |
+| typeId | 实体唯一标识id |
+| label  | 本体名称       |
+| name   | 实体名字       |
+
+外源性数据如果符合表的结构，则存入名为```external```的```schemas```中。如额外电影数据存入表名为：```ex_movies```。
 
 ### mongoDB
 
@@ -206,6 +228,8 @@ db.col.createIndex( { "time": 1 }, { expireAfterSeconds: 60*60*24*2 } )
 ```sql
 db.col.createIndex({"id":1})
 ```
+
+外源性数据如果符合```JSON```的结构，则存入名为```external```的```database```中，collection名为：```data```。
 
 ## BI Server
 
@@ -355,7 +379,7 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
 ### ETL
 
-如何⽀持更大规模的数据？
+##### 如何⽀持更大规模的数据？
 
 对于更大规模数据的支持，主要在于硬件和软件两个方面的改进。
 
@@ -363,7 +387,7 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
 - 软件：对于当前的neo4j来说，neo4j企业版最多可以支持它有34.4亿个节点，344亿的关系，和6870亿条属性。可以尝试将数据进行拆分，分批次使用```neosemantics```进行导入，同时可以尝试多线程的方式进行导入，但由于数据库在更新之前都通过锁定节点和关系来保证线程安全，因此最终的瓶颈仍会出现在数据库上。
 
-如何更好地⽀持数据更新，⽽不是一次性导⼊入？
+##### 如何更好地⽀持数据更新，⽽不是一次性导⼊入？
 
 - 通过```cypher```以及```Java```实现对于图谱的动态增加、删除、修改。
 
@@ -371,7 +395,7 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
 ### Storage System
 
-如何更好地对图数据进⾏建模？
+##### 如何更好地对图数据进⾏建模？
 
 - 可以构建本体模式层，其主要来源于以下两部分：
 
@@ -385,7 +409,7 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
     - 如果涉及的知识领域众多，知识复杂，主要想利用图在关系表示方面的优点表示事物之间联系，弱化复杂的推理功能，具有很高的容错性，以此达到更易被使用的效果，同时构建的知识图谱对数据一致性等要求不高，应用场景中对本体的依赖不大，不需要本体层也可以。
 
-如何提高查询性能？
+##### 如何提高查询性能？
 
 - 建立索引
 
@@ -397,7 +421,7 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
 - 对于可以实现相同功能的不同查询语句，比较不同查询语句的优劣
 
-如何增强系统的可扩展性，是否是分布式系统？
+##### 如何增强系统的可扩展性，是否是分布式系统？
 
 neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较差。如果需要分布式系统，可以考虑将数据库迁移至JanusGraph或HugeGraph，这两个版本均支持分布式，以下为具体对比。
 
@@ -410,7 +434,7 @@ neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较
 
 ### BI Server
 
-如何提⾼查询的性能？
+##### 如何提⾼查询的性能？
 
 - 建立索引
 
@@ -420,19 +444,36 @@ neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较
 
 - 对于可以实现相同功能的不同查询语句，比较不同查询语句的优劣
 
-
-是否可以采⽤缓存？
+##### 是否可以采⽤缓存？
 
 采用mongoDB作为查询缓存，如果想要进一步加速缓存效率，可以使用redis这类的key-value内存数据库加速查询效果。
 
-如何向通用的数据中台靠拢？
+##### 如何向通用的数据中台靠拢？
 
-！！！！都来写！！！！汇聚综合 如何统一处理csv、构建标签体系、构建数据服务（企业法人、投机关系）、价值变现
+！！！！都来写！！！！
+
+- 实现本体层统一存储：mysql中ontology中存储本体信息
+
+- 实现ttl文件统一上传和存储的接口
+
+  ```js
+  /uploadSystemFile
+  POST
+  RequestParam: name, file
+  注意：需要后端将文件存储在neo4j所在的物理机上
+  ```
+
+- 实现同种实体全部关系模式导出的Java脚本，函数名为```public static void exportRelation()```
+
+- 实现同种实体全部关系导出为csv文件的Java脚本，函数名```public static void exportMovie()```
+
+- 智能分析业务数据均由数据中台统一提供，包括neo4j导出服务和外部数据
+- 外部数据根据数据特点存入mongoDB/Mysql统一管理
 
 
 ### 可视化
 
-如何让⽤户更好地查看检索的结果？
+##### 如何让⽤户更好地查看检索的结果？
 
 ！！！！
 
@@ -444,6 +485,6 @@ neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较
 
 - 关系选择高亮
 
-是否⽀持沿着图进⾏进⼀步扩展？
+##### 是否⽀持沿着图进⾏进⼀步扩展？
 
 ！！！
