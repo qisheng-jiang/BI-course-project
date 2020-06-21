@@ -23,19 +23,20 @@
 
         <div class="searchTitle">单节点查询</div>
         <div class="typeWrapper">
-            <input type="radio" v-model="type" value='1'　id='s11'><label for="s11">资源</label>
-            <input type="radio" v-model="type" value='2' id='s12'><label for="s12">书籍</label>
-            <input type="radio" v-model="type" value='3' id='s13'><label for="s13">电影</label>
-            <input type="radio" v-model="type" value='4' id='s14'><label for="s14">音乐</label>
+            <input type="radio" v-model="type" value='0' 　id='s11'><label for="s11">资源</label>
+            <input type="radio" v-model="type" value='1' id='s12'><label for="s12">书籍</label>
+            <input type="radio" v-model="type" value='2' id='s13'><label for="s13">电影</label>
+            <input type="radio" v-model="type" value='3' id='s14'><label for="s14">音乐</label>
         </div>
 
-        <input type="text" v-model='curInput' class="searchInput" v-on:input='handleInputChange'>
+        <input type="text" v-model='curInput' class="searchInput" v-on:focus='startFocus' v-on:blur="stopFocus">
 
         <div class="searchRes" v-if='resShow'>
-            <div v-for="(res,index) in searchRes" v-bind:id = 'idFront + index' v-on:click='handleSelectRes' class="resLi">{{res.name}}</div>
+            <div v-for="(res,index) in searchRes" v-bind:id='idFront + index' v-on:click='handleSelectRes'
+                class="resLi">{{res.name}}</div>
         </div>
 
-        <div class="option">步长：
+        <div class="option srStep">步长：
             <select v-model=step>
                 <option>2</option>
                 <option>3</option>
@@ -47,7 +48,7 @@
                 <option>9</option>
             </select>
         </div>
-        <div class="option">
+        <div class="option srLimit">
             最大返回个数：
             <select v-model=limit>
                 <option>10</option>
@@ -59,13 +60,81 @@
             </select>
         </div>
 
-        <div class="submitButton" v-on:click="sendSearchOneReq">查询</div>
+        <div class="submitButton srSubmit" v-on:click="sendSearchOneReq">
+            <p>查询</p>
+        </div>
 
     </div>
 
     <div id="searchTwoWindow">
+        <div class="searchTitle">双节点查询</div>
 
+        <div class="typeWrapper">
+            <div class="ssrType1">
+                <input type="radio" v-model="type1" value='0' 　id='ssr11'><label for="ssr11">资源</label>
+                <input type="radio" v-model="type1" value='1' id='ssr12'><label for="ssr12">书籍</label>
+                <input type="radio" v-model="type1" value='2' id='ssr13'><label for="ssr13">电影</label>
+                <input type="radio" v-model="type1" value='3' id='ssr14'><label for="ssr14">音乐</label>
+            </div>
+            <div class="ssrType2">
+                <input type="radio" v-model="type2" value='0' 　id='ssr21'><label for="ssr21">资源</label>
+                <input type="radio" v-model="type2" value='1' id='ssr22'><label for="ssr22">书籍</label>
+                <input type="radio" v-model="type2" value='2' id='ssr23'><label for="ssr23">电影</label>
+                <input type="radio" v-model="type2" value='3' id='ssr24'><label for="ssr24">音乐</label>
+            </div>
+        </div>
 
+        <div class="searchWrapper">
+            <div class="inputWrapper">
+                <input type="text" v-model='curInput1' class="doubleInput" v-on:focus='startFocusOne'
+                    v-on:blur="stopFocusOne">
+
+                <div class="searchRes" v-if='resOneShow'>
+                    <div v-for="(res,index) in searchResOne" v-bind:id='idFront1 + index' v-on:click='handleSelectResOne'
+                        class="resLi">{{res.name}}</div>
+                </div>
+            </div>
+            &
+            <div class="inputWrapper">
+                <input type="text" v-model='curInput2' class="doubleInput" v-on:focus='startFocusTwo'
+                    v-on:blur="stopFocusTwo">
+
+                <div class="searchRes" v-if='resTwoShow'>
+                    <div v-for="(res,index) in searchResTwo" v-bind:id='idFront2 + index' v-on:click='handleSelectResTwo'
+                        class="resLi">{{res.name}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="option srStep">步长：
+                <select v-model=step>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+                    <option>7</option>
+                    <option>8</option>
+                    <option>9</option>
+                </select>
+            </div>
+            <div class="option srLimit">
+                最大返回个数：
+                <select v-model=limit>
+                    <option>10</option>
+                    <option>20</option>
+                    <option>30</option>
+                    <option>40</option>
+                    <option>50</option>
+                    <option>60</option>
+                </select>
+            </div>
+
+        <div class="submitArea">
+            <div class="submitButton ssrSubmit" v-on:click="sendMinPath">最短路查询</div>
+            <div class="submitButton ssrSubmit" v-on:click="sendTwoNodes">多跳关系查询</div>
+            <div class="submitButton ssrSubmit" v-on:click="sendAllPath">所有最短路</div>
+        </div>
 
     </div>
 
