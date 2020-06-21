@@ -10,7 +10,7 @@
 
 ### 项目架构
 
-- 前端：vue+D3
+- 前端：vue+d3.js
 - 后端：springboot+python
 - 数据库：Neo4j、MongoDB、MySQL
 
@@ -369,6 +369,192 @@ MATCH (source:sourceType),(target:targetType) WHERE id(source) = sourceId AND id
 
 其中，sourceType和targetType分别为两个查询节点的类型标签，sourceId和targetId分别为两个查询节点的id。
 
+### 可视化实现
+
+#### 力导向图
+
+采用了d3.js提供的力导向图框架实现，将后端返回的数据定义为node和link并在矢量图中设置相应的属性，其中顶点的定义如下：
+
+```javascript
+var node = svg.append("g").attr("class", "nodes").selectAll("circle").data(graph.nodes)
+        .enter().append("circle").attr(
+            "id",
+            function (d) {
+                return d.id
+            }
+        ).attr("r", function (d) {
+            if (d.id == searchOneVue.id || d.id == searchTwoVue.id1 || d.id == searchTwoVue.id2 || d.id == relatedId) return 20;
+            else return 10;
+        }).attr("fill", function (d) {
+            return type2color[d.label];
+        }).attr("stroke", "none").attr("name", function (d) {
+            return d.name;
+        }).call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended)
+        );
+
+    node.append("title").text(function (d) {
+        return d.name;
+    });
+```
+
+它所包含的属性如下：
+
+| 属性名 | 值             | 作用                       |
+| ------ | -------------- | -------------------------- |
+| r      | 取决于聚焦程度 | 对正在查询的点进行放大显示 |
+| fill   | 取决于类别     | 根据返回的属性进行渲染     |
+| title  | 顶点名称       | 鼠标长时间hover上浮显示    |
+
+初次之外，还定义了三个函数```dragstarted()```、```dragged()```和```dragendend()```，分别代表拖动开始、拖动中和拖动结束的时间处理，方便用户进行查看。
+
+边和边上的text定义如下：
+
+```javascript
+var link = svg.append("g").attr("class", "links").selectAll("line").data(graph.links)
+        .enter().append("line").attr(
+            'name',
+            function (d) {
+                return d.label;
+            }
+        ).attr("stroke-width", function (d) {
+            //return Math.sqrt(d.value);
+            return 1; //所有线宽度均为1
+        }).attr(
+            'id',
+            function(d){
+                return d.id;
+            }
+        ).style("stroke", function (d) {
+            return 'grey';
+        });
+ var linkText = svg.append('g').selectAll("line")
+        .data(graph.links)
+        .enter()
+        .append("text")
+        .attr("font-family", "Arial, Helvetica, sans-serif")
+        .attr("x", function (d) {
+            if (d.target.x > d.source.x) {
+                return (d.source.x + (d.target.x - d.source.x) / 2);
+            } else {
+                return (d.target.x + (d.source.x - d.target.x) / 2);
+            }
+        })
+        .attr("y", function (d) {
+            if (d.target.y > d.source.y) {
+                return (d.source.y + (d.target.y - d.source.y) / 2);
+            } else {
+                return (d.target.y + (d.source.y - d.target.y) / 2);
+            }
+        })
+        .attr("fill", "white")
+        .style("font", "normal 12px Arial")
+        .attr("dy", ".35em")
+        .text(function (d) {
+            return d.label;
+        });
+```
+
+其中线的定义比较简单，只设置了默认的长度和颜色，线上对应的说明文字则需要手动添加。在创建过程中，首先选中所有的线，获取其的x属性和y属性，并根据方向关系算出描述文字的位置。
+
+之后，还需要在ticked中将他们的位置实时更新，代码同上。
+
+当鼠标进入某个node后需要将它的数据实时更新到右侧的面板中，故利用mouseenter事件配合类选择器对整个svg进行监听，只有当用户没有产生拖动动作时，该部分才会被更新，同时，一些d3生成属性应该被忽略：
+
+```javascript
+if (!dragging) {
+
+        var name = $(this).attr('name');
+        var id = $(this).attr('id');
+        var sel_node;
+
+        $('#info h4').css('color', $(this).attr('fill')).text(name);
+        $('#info p').remove();
+
+        for (var i = 0; i < graph.nodes.length; i++) {
+            var node = graph.nodes[i];
+            if (node['id'] == id) {
+                sel_node = node;
+                break;
+            }
+        }
+
+        for (var key in sel_node) {
+
+            if (key == 'x' || key == 'y' || key == 'vx' || key == 'vy' || key == 'index' || key == 'fx' || key == 'fy') continue;
+            if (key == 'uri') {
+                $('#info').append('<p><span>' + key + '</span>' + '<a href = \'' + sel_node[key] + '\'>' + sel_node[key] + '<a>' + '</p>');
+                continue;
+            }
+            $('#info').append('<p><span>' + key + '</span>' + sel_node[key] + '</p>');
+        }
+    }
+```
+
+#### 信息检索
+
+本次的查询界面分单节点和双节点，两者的逻辑类似，以单节点的代码为例。
+
+弹出框和遮罩阴影采用了原生css动画实现，同时，由于表单部分涉及了较多数据交互和实时更新，故对两个弹出框分别引入了名为```searchOneVue```和```searchTwoVue```的vue变量进行数据绑定。
+
+在进行模糊搜索时，对用户对搜索框的聚焦进行监听，当用户在聚焦搜索时，启动一个周期性函数向后端发送请求，同时更新```searchRes```数组对搜索结果进行动态更新：
+
+```javascript
+startFocus: function () {
+
+            var p_this = this;
+            this.sendInterv = setInterval(function () {
+
+                var params = new URLSearchParams();
+                params.append('type', p_this.type);
+                params.append('name', p_this.curInput);
+
+                if (p_this.curInput != '') {
+                    axios
+                        .post(requestURL + '/selectByTypeAndName', params)
+                        .then(res => {
+                            p_this.searchRes = res.data;
+                        });
+                }
+                p_this.resShow = true;
+            }, 4000);
+        },
+
+        stopFocus: function () {
+            clearInterval(this.sendInterv);
+        }
+```
+
+请求采用axios，当搜索框失焦(关闭窗口或选择了一个查询结果)时，清除这个周期变量。
+
+当用户选中搜索框内容后，更新vue对象中的id和type，作为最终查询的数据准备，查询同样使用axios请求，在收到返回后，更新全局的graph.nodes变量和garph.links变量，并调用```initSvg()```对画布重新渲染：
+
+```javascript
+ axios.post(requestURL + '/searchANode', params)
+                .then(res => {
+                    console.log(res);
+                    p_nodes = res.data.nodes;
+                    p_relations = res.data.relations;
+
+                    graph.nodes = [];
+                    graph.links = [];
+
+                    for (let i = 0; i < p_nodes.length; i++) {
+                        var newNode = p_nodes[i]['properties'];
+                        graph.nodes.push(newNode);
+                    }
+
+                    for (let i = 0; i < p_relations.length; i++) {
+                        var newLink = p_relations[i]['properties'];
+                        graph.links.push(newLink);
+                    }
+                    initSvg();
+                    closeAll();
+                })
+```
+
 ### 基本智能分析
 
 ！！！！！！快去写，靴靴
@@ -473,18 +659,46 @@ neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较
 
 ### 可视化
 
-##### 如何让⽤户更好地查看检索的结果？
+##### 沿图拓展
 
-！！！！
+当用户点击一个点时，将该点放大并给出和该点相关的10条信息，选择逻辑同属性加载部分，更新画布的部分代码如下：
 
-- 实体模糊匹配
+```javascript
+p_nodes = res.data.nodes;
+p_relations = res.data.relations;
 
-- 查看属性
+new_nodes = [];
+new_links = [];
 
-- 节点搜索
+for(let i =0;i < graph.nodes.length;i++){
+  new_nodes.push({
+    'name': graph.nodes[i].name,
+    'id': graph.nodes[i].id,
+    'label': graph.nodes[i].label,
+    'uri': graph.nodes[i].uri
+  }
+                );
+}
 
-- 关系选择高亮
+ for (let i = 0; i < p_nodes.length; i++) {
 
-##### 是否⽀持沿着图进⾏进⼀步扩展？
+                var newNode = p_nodes[i]['properties'];
+                /*判断存在*/
+                var judge = false;
+                for (let j = 0; j < new_nodes.length; j++) {
+                    
+                    if(newNode.id == new_nodes[j].id){
+                        judge = true;
+                        break;
+                    }
+                }
 
-！！！
+                if(!judge)new_nodes.push(newNode);
+            }
+/**下略**/
+```
+
+由于我们已经将节点数据同initSvg()进行了绑定，所以想法是直接更新数据，再通过调用重新渲染更新视图，在这一部分的实现中需要注意的问题有：
+
+* 在节点扩展，即添加节点的过程中，应将原有节点同样保留，同时将选择的节点放大显示
+* 保留原有节点涉及对原有节点数组的遍历查找，但经过d3的渲染封装，原有数据节点，尤其是```links```部分的source和target已经被添加了位置等额外信息，因此需要先将这些信息提取出来作为一个新的对象，再进行重复性检测
