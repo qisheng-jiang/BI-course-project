@@ -208,6 +208,18 @@ public class GraphService {
         return query(query.toString());
     }
 
+    public void importTtl(String typePath) {
+        //初始化驱动器
+        try (Session session = this.getSession()) {
+            try (Transaction tx = session.beginTransaction()) {
+                String ontology="CALL semantics.importRDF(\"file://" + typePath + "\", \"Turtle\",{})";
+                Result result2 = tx.run(ontology);
+                System.out.println(result2.toString());
+                tx.commit();
+            }
+        }
+    }
+
     public static void main(String[] args){
         GraphService gs = new GraphService();
         for (int i = 1; i < 5; i++) {

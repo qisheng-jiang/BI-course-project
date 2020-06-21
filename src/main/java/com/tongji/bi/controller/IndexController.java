@@ -8,14 +8,22 @@ import com.tongji.bi.util.ConstantDefinition;
 import com.tongji.bi.util.MongoDriverInitialize;
 import com.tongji.bi.util.MysqlDriverInitialize;
 import com.tongji.bi.util.ParamUtils;
-
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
-import java.io.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Map;
+
+import static com.tongji.bi.util.ConstantDefinition.path2SystemJson;
 
 @RestController
 @CrossOrigin(maxAge = 3600, origins = "*")
@@ -143,6 +151,72 @@ public class IndexController {
         return results;
     }
 
+    //上传系统的system文件
+    @RequestMapping(value = "/uploadSystemFile",method = RequestMethod.POST)
+    @ResponseBody
+    @CrossOrigin(maxAge = 3600, origins = "*")
+    public Map<String, Object> postSystem(HttpServletRequest request,
+                                          @RequestParam("name") String name){
+//        String savePath = FileController.class.getResource("/").getPath().replace("classes","upload/system");
+        String savePath = path2SystemJson;
+        Map<String, Object> res = new HashMap<>();
+        try{
+            if (springUpload(request, savePath, name)) {
+                res.put("succees",1);
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+            res.put("succees", 0);
+            res.put("Reason",e.toString());
+        }
+        new GraphService().importTtl(path2SystemJson+name+".ttl");
+        return res;
+    }
+
+    private boolean springUpload(HttpServletRequest request, String savePath, String fileName) throws IllegalStateException, IOException
+    {
+        //将当前上下文初始化给  CommonsMutipartResolver （多部分解析器）
+        CommonsMultipartResolver multipartResolver=new CommonsMultipartResolver(
+                request.getSession().getServletContext());
+        //检查form中是否有enctype="multipart/form-data"
+        if(multipartResolver.isMultipart(request))
+        {
+            //将request变成多部分request
+            MultipartHttpServletRequest multiRequest=(MultipartHttpServletRequest)request;
+            //获取multiRequest 中所有的文件名
+            Iterator iter=multiRequest.getFileNames();
+
+            while(iter.hasNext())
+            {
+
+                //一次遍历所有文件
+                MultipartFile file=multiRequest.getFile(iter.next().toString());
+                if(file!=null)
+                {
+                    String oldName = file.getOriginalFilename();
+                    String path = savePath + fileName + oldName.substring(oldName.lastIndexOf("."));
+                    System.out.println(path);
+                    File folder = new File(savePath);
+                    //文件夹路径不存在
+                    if (!folder.exists() && !folder.isDirectory()) {
+                        folder.mkdirs();
+                    }
+                    File newFile = new File(path);
+                    //判断路径是否存在，如果不存在就创建一个
+                    if(!newFile.exists()){
+                        newFile.mkdir();
+                    }
+                    //上传
+                    file.transferTo(newFile);
+
+                }
+
+            }
+
+        }
+        return true;
+    }
+
     /**
      * query一条语句，测试用
      * @param query 查询语句
@@ -154,127 +228,4 @@ public class IndexController {
     public HashMap<String, ArrayList<NodeEntity>> query(@RequestParam("query") String query){
         return new GraphService().query(query);
     }
-
-    /**
-     * 获得某类型电影预测某年数量
-     */
-    @RequestMapping(value = "predictMovieGenreAmount", method = RequestMethod.POST)
-    @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
-    public String predictMovieGenreAmount(@RequestParam("year") String year,
-                           @RequestParam("genre") String genre) throws IOException, InterruptedException {
-        String exe = "python";
-        String command = "python/genrePredict.py";
-
-        String[] cmdArr = new String[] {exe, command, genre, year};
-        Process process = Runtime.getRuntime().exec(cmdArr);
-        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = null;
-//        while ((line = in.readLine()) != null) {
-//            System.out.println(line);
-//        }
-        line = in.readLine();
-        in.close();
-        process.waitFor();
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("amount", line);
-        System.out.println(hashMap);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.putAll(hashMap);
-        System.out.println(jsonObject);
-
-        return jsonObject.toJSONString();
-    }
-
-    /**
-     * 为某用户uid推荐n个电影
-     * @return
-     */
-    @RequestMapping(value = "get_similar_users_recommendations", method = RequestMethod.POST)
-    @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
-    public String get_similar_users_recommendations(@RequestParam("uid") String uid,
-                                                    @RequestParam("n") String n) throws IOException, InterruptedException {
-        String exe = "python";
-        String command = "python/movie_recommend.py";
-
-        String[] cmdArr = new String[] {exe, command, uid, n};
-        Process process = Runtime.getRuntime().exec(cmdArr);
-        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = null;
-        List<String> resultList = new ArrayList();
-
-        while ((line = in.readLine()) != null) {
-            System.out.println(line);
-            if (line.contains("Estimating biases")) continue;
-            if (line.contains("Computing the msd")) continue;
-            resultList.add(line);
-        }
-        in.close();
-        process.waitFor();
-
-        HashMap<String, List<String>> hashMap = new HashMap<>();
-        hashMap.put("list", resultList);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.putAll(hashMap);
-        return jsonObject.toJSONString();
-    }
-
-    /**
-     * 某电影iid的相似n个电影
-     * @return
-     */
-    @RequestMapping(value = "get_similar_items", method = RequestMethod.POST)
-    @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
-    public String get_similar_items(@RequestParam("iid") String iid,
-                                    @RequestParam("n") String n) throws IOException, InterruptedException {
-        String exe = "python";
-        String command = "python/movie_recommend2.py";
-
-        String[] cmdArr = new String[] {exe, command, iid, n};
-        Process process = Runtime.getRuntime().exec(cmdArr);
-        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line = null;
-        List<String> resultList = new ArrayList();
-
-        while ((line = in.readLine()) != null) {
-            System.out.println(line);
-            if (line.contains("Estimating biases")) continue;
-            if (line.contains("Computing the msd")) continue;
-            if (line.contains("Done computing similarity")) continue;
-            resultList.add(line);
-        }
-        in.close();
-        process.waitFor();
-
-        HashMap<String, List<String>> hashMap = new HashMap<>();
-        hashMap.put("list", resultList);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.putAll(hashMap);
-        return jsonObject.toJSONString();
-    }
-
-//    /**
-//     * 两个电影的相似度（图数据）
-//     */
-//    @RequestMapping(value = "get_similarity", method = RequestMethod.POST)
-//    @ResponseBody
-//    @CrossOrigin(maxAge = 3600, origins = "*")
-//    public String get_similarity(@RequestParam("name1") String name1,
-//                                  @RequestParam("name2") String name2) throws IOException, InterruptedException {
-//        String exe = "python";
-//        String command = "python/movie_sim.py";
-//
-//        String[] cmdArr = new String[] {exe, command, name1, name2};
-//        Process process = Runtime.getRuntime().exec(cmdArr);
-//        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//        String line = null;
-//        while ((line = in.readLine()) != null) {
-//            System.out.println(line);
-//        }
-//        in.close();
-//        process.waitFor();
-//        return line;
-//    }
 }
