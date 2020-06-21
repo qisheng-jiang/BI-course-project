@@ -16,7 +16,7 @@
 
 ![framework](img/framework.png)
 
-#### 后端类图
+### 类图
 
 ![class](img/class.png)
 
@@ -150,7 +150,7 @@ mysql主要存储实体节点信息，用于实体名字的模糊查询，⽬的
 
 版本：8.0
 
-数据量：
+数据量：2,369,339
 
 存储结构：
 
@@ -178,6 +178,16 @@ CREATE FULLTEXT INDEX ft_name ON node (name)
 ```sql
 SELECT * FROM node WHERE MATCH (name) AGAINST ('David') LIMIT 50
 ```
+
+处理数据得到的本体层文件存入ontology表中，表的结构如下所示：
+
+| 字段   | 含义           |
+| ------ | -------------- |
+| typeId | 实体唯一标识id |
+| label  | 本体名称       |
+| name   | 实体名字       |
+
+外源性数据如果符合表的结构，则存入名为```external```的```schemas```中。如额外电影数据存入表名为：```ex_movies```。
 
 ### mongoDB
 
@@ -218,6 +228,8 @@ db.col.createIndex( { "time": 1 }, { expireAfterSeconds: 60*60*24*2 } )
 ```sql
 db.col.createIndex({"id":1})
 ```
+
+外源性数据如果符合```JSON```的结构，则存入名为```external```的```database```中，collection名为：```data```。
 
 ## BI Server
 
@@ -456,7 +468,7 @@ neo4j企业版只支持集群备份模式，不支持分布式，可扩展性较
 - 实现同种实体全部关系导出为csv文件的Java脚本，函数名```public static void exportMovie()```
 
 - 智能分析业务数据均由数据中台统一提供，包括neo4j导出服务和外部数据
-- 外部数据存入mongoDB统一管理
+- 外部数据根据数据特点存入mongoDB/Mysql统一管理
 
 
 ### 可视化
