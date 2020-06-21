@@ -39,8 +39,13 @@ public class MysqlDriverInitialize {
              if (typeMysql == null){
                  typeMysql = "Resource";
              }
-            cacheEntities.add(new CacheEntity(resultSet.getInt(1), typeMysql, resultSet.getString(2).replaceAll("_", " "), resultSet.getString(4)));
+             String uri = resultSet.getString(4);
+             if (uri == null){
+                 uri = "";
+             }
+            cacheEntities.add(new CacheEntity(resultSet.getInt(1), typeMysql, resultSet.getString(2).replaceAll("_", " "), uri));
         }
+        resultSet.close();
         preparedStatement.close();
         System.out.println("结束从Mysql中查[type:" + type + ",name:" + name + "]");
         if (!connection.isClosed())

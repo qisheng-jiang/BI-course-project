@@ -1,0 +1,195 @@
+body{
+    margin: 0;
+    background-color: #272b30;
+    text-align: center;
+    
+}
+
+a{
+    color: white;
+}
+
+.title{
+    position: absolute;
+    left: 30%;
+    width: 40%;
+    top:5%;
+    text-align: center;
+    color:white;
+    font-size: 30px;
+}
+
+#svg{
+    position: relative;
+    /*border: 1px solid red;*/
+    margin-top: 120px;
+}
+
+
+/***************************图例******************************/
+#indicator {
+	position: absolute; 
+	left: 60px;
+	bottom: 120px;
+    text-align: left;
+    color: #f2f2f2;
+    font-size: 12px;
+}
+
+#indicator>div {
+    margin-bottom: 4px;
+}
+
+#indicator span {
+    display: inline-block;
+    width: 30px;
+    height: 14px;
+    position: relative;
+    top: 2px;
+    margin-right: 8px;
+}
+
+/***************************线******************************/
+
+.links line {
+	stroke: rgb(240, 240, 240); 
+	stroke-opactity: 0.2;
+}
+
+.links line.inactive {
+    /*display: none !important;*/
+    stroke-opacity: 0;
+}
+
+/***************************节点******************************/
+
+.nodes circle {
+	stroke: #fff;
+	stroke-width: 1.5px;
+}
+
+.nodes circle:hover {
+    cursor: pointer;
+}
+
+.nodes circle.inactive {
+	display: none !important;
+}
+
+/***************************文字******************************/
+.texts text {
+    display: none;
+}
+
+.texts text:hover {
+    cursor: pointer;
+}
+
+.texts text.inactive {
+    display: none !important;
+}
+
+/***************************模式******************************/
+
+#mode {
+    position: absolute;
+    top: 160px;
+    left: 60px;
+}
+
+#mode span {
+    display: inline-block;
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: color, background-color .3s;
+    -o-transition: color, background-color .3s;
+    -ms-transition: color, background-color .3s;
+    -moz-transition: color, background-color .3s;
+    -webkit-transition: color, background-color .3s;
+}
+
+#mode span.active, #mode span:hover {
+    background-color: #fff;
+    color: #333;
+    cursor: pointer;
+}
+
+/***************************信息******************************/
+
+#info {
+    position: absolute;
+    bottom: 120px;
+    right: 30px;
+    text-align: right;
+    width: 270px;
+}
+
+
+#info p {
+    color: #fff;
+    font-size: 12px;
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+
+#info p span {
+    color: #888;
+    margin-right: 10px;
+}
+
+#info h4 {
+    color: #fff;
+}
+
+
+
+#search input {
+    position: absolute;
+    top: 220px;
+    left: 60px;
+    color: #fff;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    width: 200px;
+    background-color: #666;
+}
+
+/***************************按钮******************************/
+.buttonWindow{
+    width: 800px;
+    height: 60px;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+   
+
+    display: flex;
+    justify-content: space-around;
+}
+
+.buttonWindow .searchButton{
+    width: 150px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border:1px solid white;
+    border-radius: 10px;
+    opacity: .5;
+    transition:0.5s;
+    
+}
+.buttonWindow .searchButton:hover{
+    cursor: pointer;
+    opacity: .9;
+    
+}
+
+.buttonWindow .searchButton p{
+    font-size: 16px;
+    color: white;
+}
