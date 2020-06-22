@@ -19,6 +19,62 @@
 
     </div>
 
+    <div id="graphWindow">
+            <div class="searchTitle">展示分析</div>
+        <img src="img/graph.png" alt="">
+
+        <div class="AmountPredictArea">
+            <div class="AmountGroup">
+                <p>年份</p>
+                <select v-model=year>
+                        <option>2020</option>
+                        <option>2021</option>
+                        <option>2022</option>
+                        <option>2023</option>
+                        <option>2024</option>
+                        <option>2025</option>
+                        <option>2026</option>
+                        <option>2027</option>
+                    </select>
+            </div>
+            <div class="AmountGroup">
+                    <p>种类</p>
+                    <select v-model=Genre>
+                            <option>Action</option>
+                            <option>Comedy</option>
+                            <option>Crime</option>
+                            <option>Horror</option>
+                            <option>Drama</option>
+                            <option>Fantasy</option>
+                            <option>War</option>
+                            <option>History</option>
+                        </select>
+                </div>
+            <div class="AmountGroup">
+                <p>预测结果</p>
+                <p>{{amount}}</p>
+            </div>
+        </div>
+
+        <div class="IdArea">
+            <input type="text" class="IdInput" placeholder="uid" v-model='uid'>
+            <input type="text" class="IdInput" placeholder="iid" v-model='iid'>
+        </div>
+
+        <div class="submitArea graphJust">
+                <div class="submitButton ssrSubmit" v-on:click="sendPredict">数量预测</div>
+                <div class="submitButton ssrSubmit" v-on:click="sendPerson">个人推荐</div>
+                <div class="submitButton ssrSubmit" v-on:click="sendAlike">类似推荐</div>
+        </div>
+
+    </div>
+
+    <div id="recWindow">
+
+            <div class="searchTitle" id="recTitle">为您推荐</div>
+
+    </div>
+
     <div id="searchOneWindow">
 
         <div class="searchTitle">单节点查询</div>
@@ -29,7 +85,7 @@
             <input type="radio" v-model="type" value='3' id='s14'><label for="s14">音乐</label>
         </div>
 
-        <input type="text" v-model='curInput' class="searchInput" v-on:focus='startFocus' v-on:blur="stopFocus">
+        <input type="text" v-model='curInput' class="searchInput" v-on:focus='startFocus' v-on:blur="stopFocus" placeholder="输入查询项">
 
         <div class="searchRes" v-if='resShow'>
             <div v-for="(res,index) in searchRes" v-bind:id='idFront + index' v-on:click='handleSelectRes'
@@ -87,17 +143,17 @@
         <div class="searchWrapper">
             <div class="inputWrapper">
                 <input type="text" v-model='curInput1' class="doubleInput" v-on:focus='startFocusOne'
-                    v-on:blur="stopFocusOne">
+                    v-on:blur="stopFocusOne" placeholder="查询项1">
 
                 <div class="searchRes" v-if='resOneShow'>
                     <div v-for="(res,index) in searchResOne" v-bind:id='idFront1 + index' v-on:click='handleSelectResOne'
-                        class="resLi">{{res.name}}</div>
+                        class="resLi" >{{res.name}}</div>
                 </div>
             </div>
             &
             <div class="inputWrapper">
                 <input type="text" v-model='curInput2' class="doubleInput" v-on:focus='startFocusTwo'
-                    v-on:blur="stopFocusTwo">
+                    v-on:blur="stopFocusTwo" placeholder="查询项2">
 
                 <div class="searchRes" v-if='resTwoShow'>
                     <div v-for="(res,index) in searchResTwo" v-bind:id='idFront2 + index' v-on:click='handleSelectResTwo'
@@ -170,6 +226,10 @@
 
         <div id="showSearchTwo" class="searchButton">
             <p>双节点关系查询</p>
+        </div>
+
+        <div id="showgraph" class="searchButton">
+            <p>展示分析</p>
         </div>
 
     </div>

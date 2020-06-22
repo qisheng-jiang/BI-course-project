@@ -23,12 +23,12 @@ import java.util.*;
 
 import static com.tongji.bi.util.ConstantDefinition.path2SystemJson;
 
+@CrossOrigin("*")
 @RestController
-@CrossOrigin(maxAge = 3600, origins = "*")
 public class IndexController {
 
     @RequestMapping(value = "index")
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String index(){
         return "index";
     }
@@ -43,8 +43,9 @@ public class IndexController {
      */
     @RequestMapping("selectByTypeAndName")
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public ArrayList<CacheEntity> selectByTypeAndName(@RequestParam("type") int type, @RequestParam("name") String name) throws SQLException, ClassNotFoundException {
+//        response.addHeader("Access-Control-Allow-Origin", "*");
         return MysqlDriverInitialize.selectByTypeAndName(type, name);
     }
 
@@ -58,7 +59,7 @@ public class IndexController {
      */
     @RequestMapping(value = "searchANode", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String searchANode(
             @RequestParam("type") int type, @RequestParam("step") int step, @RequestParam("id") int id, @RequestParam("limit") int limit){
         step = ParamUtils.checkStep(step);
@@ -87,7 +88,7 @@ public class IndexController {
      */
     @RequestMapping(value = "searchByTwoNodes", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String searchByTwoNodes(
             @RequestParam("sourceType") int sourceType, @RequestParam("targetType") int targetType, @RequestParam("step") int step,
             @RequestParam("limit") int limit, @RequestParam("sourceId") int sourceId, @RequestParam("targetId") int targetId){
@@ -117,7 +118,7 @@ public class IndexController {
      */
     @RequestMapping(value = "searchMinPath", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String searchMinPath(@RequestParam("source") int source, @RequestParam("target") int target,
                                                                 @RequestParam("sourceType") int sourceType, @RequestParam("targetType") int targetType){
         String param = ParamUtils.paramsToString(source, target, sourceType, targetType);
@@ -134,7 +135,7 @@ public class IndexController {
 
     @RequestMapping(value = "searchAllMinPaths", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String searchAllMinPaths(@RequestParam("source") int source, @RequestParam("target") int target,
                                     @RequestParam("sourceType") int sourceType, @RequestParam("targetType") int targetType) {
         String param = ParamUtils.paramsToString(source, target, sourceType, targetType);
@@ -152,7 +153,7 @@ public class IndexController {
     //上传系统的system文件
     @RequestMapping(value = "/uploadSystemFile",method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public Map<String, Object> postSystem(HttpServletRequest request,
                                           @RequestParam("name") String name){
 //        String savePath = FileController.class.getResource("/").getPath().replace("classes","upload/system");
@@ -222,7 +223,7 @@ public class IndexController {
      */
     @RequestMapping(value = "query", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public HashMap<String, ArrayList<NodeEntity>> query(@RequestParam("query") String query){
         return new GraphService().query(query);
     }
@@ -233,7 +234,7 @@ public class IndexController {
      */
     @RequestMapping(value = "predictMovieGenreAmount", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String predictMovieGenreAmount(@RequestParam("year") String year,
                                           @RequestParam("genre") String genre) throws IOException, InterruptedException {
         String exe = "python";
@@ -265,7 +266,7 @@ public class IndexController {
      */
     @RequestMapping(value = "get_similar_users_recommendations", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String get_similar_users_recommendations(@RequestParam("uid") String uid,
                                                     @RequestParam("n") String n) throws IOException, InterruptedException {
         String exe = "python";
@@ -276,18 +277,45 @@ public class IndexController {
         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line = null;
         List<String> resultList = new ArrayList();
+        List<HashMap<String, Object>> rating = new ArrayList();
 
+        int switchFlag = 1;
+        String nameRating = "name";
+        String tempName = null;
         while ((line = in.readLine()) != null) {
 //            System.out.println(line);
             if (line.contains("Estimating biases")) continue;
             if (line.contains("Computing the msd")) continue;
-            resultList.add(line);
+            if (line.contains("Done computing similarity")) continue;
+
+            if (line.equals("dsofowenjcxjknugoiernfgioernnvrehguhtgunviofv")){
+                switchFlag = 2;
+                continue;
+            }
+            if (switchFlag == 1) {
+                resultList.add(line);
+            }
+            else{
+                if (nameRating.equals("name")){
+                    tempName = line;
+                    nameRating = "rating";
+                }
+                else {
+                    HashMap<String, Object> temp = new HashMap<>();
+                    temp.put("name", tempName);
+                    temp.put("rating", line);
+                    rating.add(temp);
+                    nameRating = "name";
+                }
+            }
         }
         in.close();
         process.waitFor();
+        System.out.println(resultList);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("rating", rating);
 
-        HashMap<String, List<String>> hashMap = new HashMap<>();
-        hashMap.put("list", resultList);
+        hashMap.put("recommend_list", resultList);
         JSONObject jsonObject = new JSONObject();
         jsonObject.putAll(hashMap);
         return jsonObject.toJSONString();
@@ -299,7 +327,7 @@ public class IndexController {
      */
     @RequestMapping(value = "get_similar_items", method = RequestMethod.POST)
     @ResponseBody
-    @CrossOrigin(maxAge = 3600, origins = "*")
+    @CrossOrigin("*")
     public String get_similar_items(@RequestParam("iid") String iid,
                                     @RequestParam("n") String n) throws IOException, InterruptedException {
         String exe = "python";
@@ -333,7 +361,7 @@ public class IndexController {
 //     */
 //    @RequestMapping(value = "get_similarity", method = RequestMethod.POST)
 //    @ResponseBody
-//    @CrossOrigin(maxAge = 3600, origins = "*")
+//    @CrossOrigin
 //    public String get_similarity(@RequestParam("name1") String name1,
 //                                  @RequestParam("name2") String name2) throws IOException, InterruptedException {
 //        String exe = "python";

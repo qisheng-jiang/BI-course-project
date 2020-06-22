@@ -146,7 +146,6 @@
     width: 500px;
     height: 300px;
     padding:20px 20px;
-
     position: fixed; 
     left: 0px;
     right: 0px;
@@ -205,4 +204,87 @@
 .ssrSubmit{
     position: relative;
     left:0%;
+}
+
+/***************************开局一张图******************************/
+
+#graphWindow{
+
+    width: 500px;
+    height: 600px;
+    padding:20px 20px;
+    position: fixed; 
+    left: 0px;
+    right: 0px;
+    top:0px;
+    bottom:0px;
+    margin: auto;
+    background-color: white;
+    border-radius: 10px;
+    z-index:100;
+    display: none;
+    transition: 0.2s;
+
+}
+
+#graphWindow img{
+    margin-top:20px;
+    width: 500px;
+    height: 300px;
+
+}
+
+#graphWindow .AmountPredictArea{
+    width:100%;
+    height: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+#graphWindow .graphJust{
+    top:500px;
+}
+
+#graphWindow .IdArea{
+    margin-top:100px;
+    width: 100%;
+    height: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+#graphWindow .IdInput{
+    padding: 10px 10px;
+    font-size: 16px;
+    border:none;
+    border-bottom:1px solid grey;
+    text-align: center;
+
+}
+
+/***************************开局一张图******************************/
+#recWindow{
+
+    width: 400px;
+    height: 400px;
+    padding:20px 20px;
+    position: fixed; 
+    left: 0px;
+    right: 0px;
+    top:0px;
+    bottom:0px;
+    margin: auto;
+    background-color: white;
+    border-radius: 10px;
+    z-index:120;
+    display: none;
+    overflow: scroll;
+    transition: 0.2s;
+
+}
+
+.recItem{
+    margin-top:15px;
+    font-weight: 400;
+    font-size: 14px;
 }

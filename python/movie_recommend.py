@@ -26,8 +26,11 @@ item_based_sim_option = {'name': 'pearson_baseline', 'user_based': False}
 user_based_sim_option = {'name': 'pearson_baseline', 'user_based': True}
 
 def get_my_ratings(uid):
-    myratings_df=df[df['user']==uid][['item','mtitle','rating']]
-    return myratings_df
+    myratings_df=df[df['user']==uid][['mtitle','rating']]
+    a = myratings_df[0:10].values
+    for i in a:
+        print(i[0])
+        print(i[1])
 
 # 为用户推荐n部电影，基于用户的协同过滤算法，先获取10个相似度最高的用户，把这些用户评分高的电影加入推荐列表。
 def get_similar_items(iid, n = 10):
@@ -69,6 +72,8 @@ def get_similar_users_recommendations(uid, n=10):
     #     if i >= 10:
     #         break
     #     print(j)
+    print("dsofowenjcxjknugoiernfgioernnvrehguhtgunviofv")
+    get_my_ratings(uid)
     return recommendations
 
 #电影推荐示例
