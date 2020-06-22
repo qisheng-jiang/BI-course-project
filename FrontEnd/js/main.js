@@ -171,8 +171,8 @@ var searchTwoVue = new Vue({
         type1: 0,
         type2: 0,
 
-        curInput1: 'hello',
-        curInput2: 'hi',
+        curInput1: '',
+        curInput2: '',
 
         idFront1: 'ssrOne',
         idFront2: 'ssrTwo',
@@ -388,6 +388,89 @@ var searchTwoVue = new Vue({
 
 });
 
+/***************************推荐，我想笑******************************/
+
+
+
+var recVue = new Vue({
+    el:'#graphWindow',
+    data:{
+
+        year:2020,
+        Genre:'Action',
+        uid:'',
+        iid:'',
+        amount:''
+
+    },
+    methods:{
+        sendPredict:function(){
+            var params = new URLSearchParams();
+
+            params.append('year', this.year);
+            params.append('genre', this.Genre);
+         
+            axios.post(requestURL + '/predictMovieGenreAmount', params)
+            .then(res=>{
+                this.amount = parseInt(res.data.amount);
+            });
+        },
+
+        sendPerson:function(){
+
+            if(this.uid == ''){
+                alert('请输入用户id');
+                return;
+            }
+
+            var params = new URLSearchParams();
+
+            params.append('uid', this.uid);
+            params.append('n', '10');
+
+            axios.post(requestURL + '/get_similar_users_recommandations', params)
+            .then(res=>{
+                console.log(res);
+                closeAll();
+                for(var i = 0;i < res.data.list.length;i++){
+                    $('#recTitle').append("<div class='recItem'>"+res.data.list[i]+"</div>");
+                }
+                
+                setTimeout(showRecWindow,500);
+            }); 
+
+        },
+        sendAlike:function(){
+
+            if(this.iid==''){
+                alert('请输入电影id');
+                return;
+            }
+
+            var params = new URLSearchParams();
+
+            params.append('iid', this.iid);
+            params.append('n', '10');
+
+            axios.post(requestURL + '/get_similar_items', params)
+            .then(res=>{
+              
+                closeAll();
+                for(var i = 0;i < res.data.list.length;i++){
+                    $('#recTitle').append("<div class='recItem'>"+res.data.list[i]+"</div>");
+                }
+                
+                setTimeout(showRecWindow,500);
+                
+            }); 
+
+        }
+    }
+});
+
+
+
+
 /***************************图例******************************/
 
 function createIndicator() {
@@ -447,10 +530,15 @@ function showGraphWindow(){
     showWindow(document.getElementById('graphWindow'));
 }
 
+function showRecWindow(){
+    showWindow(document.getElementById('recWindow'));
+}
+
 function closeAll() {
     closeWindow(document.getElementById("searchOneWindow"));
     closeWindow(document.getElementById("searchTwoWindow"));
     closeWindow(document.getElementById("graphWindow"));
+    closeWindow(document.getElementById("recWindow"));
 }
 
 /***************************创建力图******************************/
